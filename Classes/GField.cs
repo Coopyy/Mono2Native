@@ -23,7 +23,7 @@ namespace MonoSDKGenerator.Classes
         private string _fullName;
 
         private string _sdkName;
-
+        private bool initialized = false;
         public GField(GType parent, FieldDef field, bool included)
         {
             if (!parent.IsValueType)
@@ -38,11 +38,15 @@ namespace MonoSDKGenerator.Classes
             this._sdkName = Utils.GetName(field.Name).Replace("k__BackingField", "").Replace("<", "").Replace(">", "");
         }
 
-        public void Initialize()
+        public bool Initialize()
         {
+            if (initialized)
+                return referenceType;
             _sdkTypeFullName = Utils.GetTypeFullName(_field.FieldType, Parent.Parent, out referenceType);
             Utils.TypeIsRegistered(_field.FieldType, Parent.Parent, out _fieldType);
             Console.WriteLine(_sdkTypeFullName);
+            initialized = true;
+            return referenceType;
         }
 
         public void WriteDeclaration(StreamWriter sw)

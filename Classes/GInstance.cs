@@ -51,7 +51,6 @@ namespace MonoSDKGenerator.Classes
                 Directory.CreateDirectory(outPath);
 
             File.WriteAllText(sdkhPath, "");
-            File.WriteAllText(path + $@"\sdk\classes.h", "");
 
             var typesToGen = Types.Values.Where(x => x.Included);
             Console.WriteLine($"Generating {typesToGen.Count()} Classes");
@@ -76,12 +75,10 @@ namespace MonoSDKGenerator.Classes
             }
         }
 
-        private void GenerateValues(string path, StreamWriter sw)
+        private void GenerateValues(string path, StreamWriter sw) // could use work and could break
         {
             List<GType> registeredVTypes = new List<GType>();
             registeredVTypes.AddRange(Types.Values.Where(x => x.Included && x.IsStruct));
-
-            registeredVTypes.ForEach(x => Console.WriteLine(x.SDKFullName));
 
             HashSet<GType> valueTypes = new HashSet<GType>();
             bool allTypesProcessed = false;
@@ -96,12 +93,14 @@ namespace MonoSDKGenerator.Classes
                         continue;
 
                     bool didPass = true;
-                    foreach (var item in type.Fields.Values.Where(y => y.Included && y.referenceType && y.ReturnType.IsStruct && !y.Static))
-                        if (item.ReturnType != type && !valueTypes.Contains(item.ReturnType))
+                    foreach (var item in type.Fields.Values.Where(y => y.Included && y.Initialize() && y.ReturnType.IsStruct && !y.Static)) // the field isnt static, the return type is a registered struct
+                    {
+                        if (item.ReturnType != type && !valueTypes.Contains(item.ReturnType)) // have we declared it yet? if not, keep going
                         {
                             didPass = false;
                             break;
                         }
+                    }
 
                     if (didPass)
                     {
